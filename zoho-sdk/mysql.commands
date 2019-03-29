@@ -1,0 +1,10 @@
+CREATE DATABASE zohooauth;
+USE zohooauth;
+
+CREATE TABLE oauthtokens
+(
+  useridentifier       VARCHAR(150) NOT NULL,
+  accesstoken          VARCHAR(150) NOT NULL,
+  refreshtoken         VARCHAR(150) NOT NULL,
+  expirytime           BIGINT NOT NULL,
+);

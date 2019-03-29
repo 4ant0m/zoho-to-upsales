@@ -1,0 +1,16 @@
+{
+  "name": "zoho-to-upsales",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "superagent": "^4.1.0",
+    "winston": "^3.2.1",
+    "zcrmsdk": "0.0.15"
+  }
+}
