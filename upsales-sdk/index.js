@@ -12,6 +12,7 @@ class Upsales {
         this.token = data.token;
         this.version = data.version;
         this.link = `${LINK}/v${this.version}`;
+        this.limit = 10000;
 
         this._makeResources(RESOURCES, METHODS)
     }
@@ -51,7 +52,7 @@ class Upsales {
             };
         params.offset = 0;
         params.limit = offset;
-        for (let i = 0; i < 1000000; i++) {
+        for (let i = 0; i < this.limit; i++) {
             let data = await this.makeRequest(resource, `get`, params);
             if (data.length == 0) {
                 break
@@ -81,7 +82,8 @@ class Upsales {
             }
             return res.body.data
         } catch (e) {
-            throw new Error(`Error Response. Link: ${link}, method: ${method}, message: ${e.response.text}`);
+            let response =  e && e.response && e.response.text || e;
+            throw new Error(`Error Response. Link: ${link}, method: ${method}, message: ${response}`);
         }
     }
 }

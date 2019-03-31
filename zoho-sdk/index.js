@@ -6,7 +6,7 @@ let ZCRM = require('zcrmsdk')
 class Zoho {
     constructor (data) {
         this.ZCRMRestClient = ZCRM;
-        this.LIMIT = 5;
+        this.LIMIT = 2;
     }
 
     async init () {
@@ -17,8 +17,11 @@ class Zoho {
         await this._makeMethods(`products`,
             {getAll: `_getAll`}, `MODULES`
         )
+        await this._makeMethods(`activities`,
+            {getAll: `_getAll`}, `MODULES`
+        )
         await this._makeMethods(`org`,
-            {get: `_getAll`}
+            {get: `_get`}
         )
     }
 
@@ -27,34 +30,41 @@ class Zoho {
         return authResponse
     }
 
-    _makeMethods (resource, methods, isModule) {
+    _makeMethods (resource, methods, context) {
         Zoho.prototype[resource] = {};
         for (let method in methods) {
-            Zoho.prototype[resource][method] = this[methods[method]].bind(this, resource, 1000, isModule);
+            Zoho.prototype[resource][method] = this[methods[method]].bind(this, resource, 1000, context);
         }
     }
 
     async _getAll (resource, perPage, context) {
+        let results = [],
+            page = 1;
+
+        for (let i = 0; i < this.LIMIT; i++) {
+            let response = await this._get(resource, perPage, context, page);
+            if (!response) {
+                break
+            }
+            results = results.concat(response);
+            page++
+        }
+        return results
+    }
+
+    async _get (resource, perPage, context, page = 1) {
         let input = {},
-            params = {},
-            results = [];
-        params.page = 1;
+            params = {};
+        params.page = page;
         params.per_page = perPage;
         input.module = resource.toUpperCase();
         input.params = params;
 
         let apiFunction = (context) ? this.ZCRMRestClient.API[context] : this.ZCRMRestClient.API[resource.toUpperCase()];
-        for (let i = 0; i < this.LIMIT; i++) {
-            let response = (await apiFunction.get(input)).body;
-            response = JSON.parse(response);
-            response = response.data || response[resource]
-            if (!response) {
-                break
-            }
-            results = results.concat(response);
-            params.page++
-        }
-        return results
+        let response = (await apiFunction.get(input)).body;
+        response = response ? JSON.parse(response) : {};
+        response = response.data || response[resource];
+        return response;
     }
 
     async getModule (module) {
@@ -69,10 +79,6 @@ class Zoho {
 
         let response = (await this.ZCRMRestClient.API.MODULES.get(input)).body
         return response
-    }
-
-    async getOrg (){
-        crmclient.API.ORG.get(params)
     }
 
 }

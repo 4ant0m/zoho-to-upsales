@@ -5,6 +5,7 @@ const Upsales = require('./upsales-sdk');
 const Zoho = require('./zoho-sdk');
 const logger = require(`./lib/log`);
 const config = require(`./config`);
+const fixer = require('fixer-api');
 
 class Integrator {
     constructor (data) {
@@ -12,6 +13,8 @@ class Integrator {
             version: 2,
             token: data.upsales.token
         });
+        this.fixer = fixer;
+        this.fixer.set({ accessKey: config.APItokens.fixer })
         this.clientId = 10488;
         this.logger = new logger({context: `INTEGRATOR`})
     }
@@ -98,14 +101,14 @@ class Integrator {
         return results
     };
 
-    async clear (resource) {
+    async clear (resource, field = `id`, method = `getAll`) {
         this.logger.action(`Clearing ${resource}`);
         let results = [],
-            duplicates = await this.upsales[resource].getAll();
+            duplicates = await this.upsales[resource][method]();
 
         for (let i = 0; i < duplicates.length; i++) {
             this.logger.action(`Deleting ${resource}: ${duplicates[i].name} `);
-            results.push(await this.upsales[resource].delete({id: duplicates[i].id}));
+            results.push(await this.upsales[resource].delete({id: duplicates[i][field]}));
         }
         return results
     }
@@ -173,17 +176,27 @@ class Integrator {
          this.logger.info(createdUsers);*/
     }
 
-    async integrateCurrencies () {
-        let currency = await integrator.upsales.currencies.get()
+    async integrateZohoCurrencies (iso) {
+        let isoCodes = []
+            isoCodes.push(iso);
+        this.logger.action(`Getting currencies`)
+        let quotes = await fixer.latest({ base: 'EUR'})
+        let currencies = await this.upsales.currencies.get()
+        //let currency = await this.upsales.currencies.update({id: `USD`, masterCurrency: false})
+        //let currencyD = await this.upsales.currencies.delete({id: 'USD'})
+        let rate = quotes.rates[iso] / quotes.rates['USD']
+        this.logger.info(currencies)
 
         this.logger.action(`Creating currency`)
-        let currencyCreated = await integrator.upsales.currencies.create({
-            iso: 'USD',
-            rate: 0.1111111111111111,
-            active: true
-        })
+
+        let currencyCreated = await this.upsales.currencies.create({
+            iso: iso,
+            rate: rate,
+            active: true,
+        });
 
         this.logger.info(currencyCreated)
+        return currencyCreated
     }
 
     async integrate (data, resource = {}, map = {}, update = {}) {
@@ -222,7 +235,7 @@ class Integrator {
     }
 
 
-    async integrateProducts (zohoProducts) {
+    async integrateZohoProducts (zohoProducts) {
         let createdZohoProducts = await this.integrate(zohoProducts, {
             read: `products`,
             write: `products`
@@ -244,6 +257,27 @@ class Integrator {
 
         return createdZohoProducts
     }
+
+    async integrateActivityTypes
+}
+
+async function integrate () {
+    let integrator = new Integrator({
+        upsales: {
+            token: config.APItokens.upsales
+        }
+    });
+
+    let zoho = new Zoho();
+    await zoho.init();
+
+    let zohoUsers = await zoho.users.getAll(),
+        zohoCurrencies = await zoho.org.get(),
+        zohoProducts = await zoho.products.getAll()
+
+    let users = await integrator.integrateZohoUsers(zohoUsers),
+        currency = await integrator.integrateZohoCurrencies(zohoCurrencies[0].iso_code),
+        products = await integrator.integrateZohoProducts(zohoProducts);
 }
 
 (async () => {
@@ -256,24 +290,28 @@ class Integrator {
     let zoho = new Zoho();
     await zoho.init();
 
-    let res = await zoho.generateAuthTokenFromGrant('fastlittle6@gmail.com', '1000.8b77adbe52d0deaf6313dcb6a12bee9f.d69b6e786a50847d2f800caa66d59379')
+    //let res = await zoho.generateAuthTokenFromGrant('fastlittle6@gmail.com', '1000.4d2169a731c728efc729cfefe9ae4da5.6ff4524865b78b926e272bba68d53348')
 
-    console.log(res)
-    //let zohoUsers = await zoho.users.getAll();
+    //console.log(res)
+    //
 
-   /* let products = await zoho.ZCRMRestClient.API.USERS.get({params: {
-        page: 1
-    }});
+    //console.log(products)
 
-    console.log(products)*/
-    //console.log(await integrator.upsales.udoobjects.get())
-   //console.log(await integrator.upsales.udoobjects.delete({id: 411}))
+    /*console.log(await integrator.upsales.udoobjects.get())
+   console.log(await integrator.upsales.udoobjects.delete({id: 412}))*/
 
-    console.log(await zoho.org.get())
+
+
+    //await integrator.clear('currencies', `iso`, `get`)
+    let zohoCurrencies = await zoho.org.get()
+   // await integrator.integrateCurrencies(zohoCurrencies[0].iso_code)
+
+    let activities = await zoho.activities.getAll();
+    console.log(activities)
 
     //console.log(await zoho.currencies.getAll())
 
-    //await integrator.integrateZohoUsers(zohoUsers)
+    //
 
 
     //console.log(zohoUsers)

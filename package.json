@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "fixer-api": "^1.4.4",
     "superagent": "^4.1.0",
     "winston": "^3.2.1",
     "zcrmsdk": "0.0.15"
