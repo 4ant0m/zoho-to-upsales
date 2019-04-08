@@ -8,10 +8,20 @@ const RESOURCES = {
     currencies: `/currencies`,
     products: `/products`,
     users: `/users`,
+    orders: `/orders`,
+    orderstages: `/orderstages`,
+    activities: `/activities`,
+    activitytypes: `/activitytypes/activity`,
+    appointmenttypes: `/activitytypes/appointment`,
     masterusers: `/master/users`,
     usercustomfields: `/customfields/user`,
     productcustomfields: `/customfields/product`,
-    udoobjects: `/udoobjects`
+    contactcustomfields: `/customfields/contact`,
+    compancustomfields: `/customfields/account`,
+    activitiecustomfields: `/customfields/activity`,
+    ordercustomfields: `/customfields/order`,
+    udoobjects: `/udoobjects`,
+    onboardingimports: `/onboardingimports`
 };
 
 module.exports = RESOURCES;

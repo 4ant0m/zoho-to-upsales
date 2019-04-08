@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  app:
+    image: fortnox-worker
+    build: .
+    environment:
+      NODE_ENV: production
+    command: ./node_modules/.bin/jest --coverage -ci
+    volumes: 
+      - ./src:/app/src
+      - ./coverage:/app/coverage

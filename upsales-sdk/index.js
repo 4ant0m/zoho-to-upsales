@@ -12,7 +12,7 @@ class Upsales {
         this.token = data.token;
         this.version = data.version;
         this.link = `${LINK}/v${this.version}`;
-        this.limit = 10000;
+        this.limit = 500;
 
         this._makeResources(RESOURCES, METHODS)
     }
@@ -53,21 +53,22 @@ class Upsales {
         params.offset = 0;
         params.limit = offset;
         for (let i = 0; i < this.limit; i++) {
-            let data = await this.makeRequest(resource, `get`, params);
-            if (data.length == 0) {
+            let data = await this.makeRequest(resource, `get`, params, ``);
+            if (data.data.length == 0 || !data.metadata) {
                 break
             }
-            //result.metadata.total = data.metadata.total
-            //result.error = data.error;
-            result.data = result.data.concat(data);
+            result.metadata.total = data.metadata.total;
+            result.error = data.error;
+            result.data = result.data.concat(data.data);
             params.offset += offset
         }
         return result.data
     }
 
-    async makeRequest (resource, method, params) {
+    async makeRequest (resource, method, params, _return = 'data') {
         let link,
             res;
+        console.log(params)
         try {
             let id = params && params.id || ``;
                 link = `${this._getAPILink(resource)}/${id}`;
@@ -80,7 +81,10 @@ class Upsales {
             if (res.body.error) {
                 throw new Error(`Error Response. Link: ${link}, method: ${method}, message: ${res.body.error}`);
             }
-            return res.body.data
+            res = res.body;
+            if (_return)
+                res = res[_return] || res
+            return res
         } catch (e) {
             let response =  e && e.response && e.response.text || e;
             throw new Error(`Error Response. Link: ${link}, method: ${method}, message: ${response}`);

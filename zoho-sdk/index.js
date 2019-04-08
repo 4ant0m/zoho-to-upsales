@@ -1,23 +1,32 @@
 /**
  * Created by 4ant0m on 3/21/19.
  */
-let ZCRM = require('zcrmsdk')
+let ZCRM = require('./zcrmsdk')
 
 class Zoho {
     constructor (data) {
         this.ZCRMRestClient = ZCRM;
-        this.LIMIT = 2;
+        this.LIMIT = 500;
     }
 
-    async init () {
-        await this.ZCRMRestClient.initialize();
+    async init (json) {
+        await this.ZCRMRestClient.initialize(json);
         await this._makeMethods(`users`,
             {getAll: `_getAll`}
-        );
+        )
         await this._makeMethods(`products`,
             {getAll: `_getAll`}, `MODULES`
         )
         await this._makeMethods(`activities`,
+            {getAll: `_getAll`}, `MODULES`
+        )
+        await this._makeMethods(`accounts`,
+            {getAll: `_getAll`}, `MODULES`
+        )
+        await this._makeMethods(`contacts`,
+            {getAll: `_getAll`}, `MODULES`
+        )
+        await this._makeMethods(`deals`,
             {getAll: `_getAll`}, `MODULES`
         )
         await this._makeMethods(`org`,
